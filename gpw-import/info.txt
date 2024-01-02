@@ -1,0 +1,19 @@
+#project gpw-import
+on the dev machine:
+sudo docker build -t gpw-import:1.0.0 -f Dockerfile  .
+docker save gpw-import:1.0.0 -o ../gpw-import.tar
+
+on the server:
+#set docker environment to minikube
+eval $(minikube docker-env)
+docker load < ../../gpw-import.tar
+#revert docker environment to local
+eval $(minikube docker-env -u)
+
+kubectl create namespace gpw-namespace
+kubectl create secret generic postgres-secret --from-literal=postgres-password='***' --from-literal=postgres-user='***' --from-literal=postgres-url='***' -n gpw-namespace
+kubectl apply -f cronjob.yaml
+
+#manually trigger cron job
+kubectl create job --from=cronjob/gpw-stock-price-cronjob manual-trigger -n gpw-namespace
+

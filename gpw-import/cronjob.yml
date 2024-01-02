@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gpw-stock-price-cronjob
+  namespace: gpw-namespace
+spec:
+  schedule: "25,55 8,9,10,11,12,13,14,15,16,17,18 * * 1-5"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: gpw-stock-price
+              image: gpw-import:1.0.0
+              env:
+                - name: DB_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: postgres-url
+                - name: DB_PORT
+                  value: "5432"
+                - name: DB_NAME
+                  value: "gpw_data"
+                - name: DB_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: postgres-user
+                - name: DB_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-secret
+                      key: postgres-password
+          restartPolicy: Never
